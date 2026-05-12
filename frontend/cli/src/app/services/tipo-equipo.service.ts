@@ -1,0 +1,19 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { DataPackage } from '../data-package'; 
+
+@Injectable({ providedIn: 'root' })
+export class TipoEquipoService {
+  private url = '/rest/tipo-equipo'; 
+
+  constructor(private http: HttpClient) {}
+
+  findAll(): Observable<DataPackage> {
+    return this.http.get<DataPackage>(this.url);
+  }
+
+  save(tipo: any): Observable<DataPackage> {
+    return this.http.post<DataPackage>(this.url, tipo);
+  }
+}
