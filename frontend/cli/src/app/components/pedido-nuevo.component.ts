@@ -79,7 +79,7 @@ export class PedidoNuevoComponent implements OnInit {
     this.pedidoForm = this.fb.group({
       cliente: [null, Validators.required],
       producto: [null, Validators.required],
-      taller: [null, Validators.required],
+      taller: [null],
       cantidad: [1, [Validators.required, Validators.min(1)]],
       fechaEntrega: ['', Validators.required]
     });
