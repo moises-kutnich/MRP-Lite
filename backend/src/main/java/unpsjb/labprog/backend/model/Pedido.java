@@ -21,5 +21,6 @@ public class Pedido {
     private Taller taller; 
 
     private Integer cantidad;
+    private LocalDate fechaPedido;
     private LocalDate fechaEntrega;
 }

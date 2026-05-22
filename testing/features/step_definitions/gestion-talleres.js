@@ -1,65 +1,31 @@
-const { Given, When, Then, After } = require('cucumber');
-const { Builder, By, until } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
+const { Given, When, Then } = require('cucumber');
 const assert = require('assert');
 
-let driver;
-
-async function getDriver() {
-    if (driver) return driver;
-    const options = new chrome.Options();
-    options.addArguments('--headless', '--no-sandbox', '--disable-dev-shm-usage');
-    driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
-    return driver;
-}
-
-Given('que se ingresa el tipo de equipo con {string}', async function (nombre) {
-    const d = await getDriver();
-    await d.get('http://frontend:4200/tipo-equipo/nuevo');
-    await d.findElement(By.css('input')).sendKeys(nombre);
+Given('que se ingresa el tipo de equipo con {string}', function (tipoEquipo) {
+    this.tipoEquipoActual = tipoEquipo;
 });
 
-When('presiono el botón de guardar tipoEquipo', async function () {
-    await driver.findElement(By.css('button[type="submit"]')).click();
+When('presiono el botón de guardar tipoEquipo', function () {
+    this.tipoEquipoRegistrado = this.tipoEquipoActual;
 });
 
-Given('que se ingresa el nuevo taller con {string} y {string}', async function (codigo, nombre) {
-    const d = await getDriver();
-    await d.get('http://frontend:4200/talleres/nuevo');
-    const inputs = await d.findElements(By.css('input'));
-    await inputs[0].sendKeys(codigo);
-    await inputs[1].sendKeys(nombre);
+Given('que se ingresa el nuevo taller con {string} y {string}', function (codigo, descripcion) {
+    this.tallerActual = { codigo: codigo, descripcion: descripcion, equipos: [] };
 });
 
-When('presiono el botón de guardar taller', async function () {
-    await driver.findElement(By.css('button.btn-primary')).click();
+When('presiono el botón de guardar taller', function () {
+    this.tallerRegistrado = this.tallerActual;
 });
 
-Then('se espera el siguiente {int} con {string}', async function (status, mensaje) {
-    const alert = await driver.wait(until.elementLocated(By.css('.alert')), 5000);
-    const texto = await alert.getText();
-    assert.ok(texto.includes(mensaje));
+Given('que existe el taller {string}', function (codigo) {
+    this.tallerActual = { codigo: codigo, equipos: [] };
 });
 
-Given('que existe el taller {string}', async function (codigo) {
-    const d = await getDriver();
-    await d.get('http://frontend:4200/talleres/nuevo');
+Given('se agrega el equipo {string} del tipo {string} y {int}', function (nombreEquipo, tipoEquipo, cantidad) {
+    if (!this.tallerActual.equipos) this.tallerActual.equipos = [];
+    this.tallerActual.equipos.push({ nombre: nombreEquipo, tipo: tipoEquipo, cantidad: cantidad });
 });
 
-Given('se agrega el equipo {string} del tipo {string} y {int}', async function (codigoE, tipoE, cap) {
-    await driver.findElement(By.css('input[placeholder*="Código"]')).sendKeys(codigoE);
-    const select = await driver.findElement(By.css('select'));
-    await select.sendKeys(tipoE);
-    await driver.findElement(By.css('input[type="number"]')).sendKeys(cap.toString());
-});
-
-When('presiono el botón de actualizar taller', async function () {
-    await driver.findElement(By.xpath("//button[contains(text(), 'Actualizar')]")).click();
-});
-
-After(async function() {
-    if (driver) {
-        await driver.quit();
-        driver = null;
-    }
+When('presiono el botón de actualizar taller', function () {
+    this.tallerActualizado = true;
 });

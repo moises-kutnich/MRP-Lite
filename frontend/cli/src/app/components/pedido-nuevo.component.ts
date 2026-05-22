@@ -1,103 +1,191 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PedidoService } from '../services/pedido.service';
-import { ClienteService } from '../services/cliente.service';
+import { FormsModule } from '@angular/forms';
 import { ProductoService } from '../services/producto.service';
-import { TallerService } from '../services/taller.service';
+import { ClienteService } from '../services/cliente.service';
+import { PedidoService } from '../services/pedido.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-pedido-nuevo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="container mt-4 p-4 border rounded shadow-sm bg-white">
-      <h2 class="mb-4">Registrar y Planificar Pedido</h2>
-      
-      <form [formGroup]="pedidoForm" (ngSubmit)="onGuardar()" class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Cliente</label>
-          <select id="select-cliente" formControlName="cliente" class="form-select">
-            <option [ngValue]="null">Seleccionar Cliente...</option>
-            <option *ngFor="let c of clientes" [ngValue]="c">{{c.razonSocial}}</option>
-          </select>
+    <div class="container mt-4 main-card">
+      <div class="card shadow-lg border-0 bg-dark text-light">
+        <div class="card-header header-custom py-3">
+          <h3 class="m-0 font-weight-bold tracking-wide text-uppercase">
+            <i class="bi bi-box-seam me-2"></i>Registrar Pedido de Fabricación
+          </h3>
         </div>
+        
+        <div class="card-body p-4">
+          <form (ngSubmit)="guardar()" #pedidoForm="ngForm">
+            
+            <div class="mb-4">
+              <label for="select-cliente" class="form-label text-secondary-custom font-medium">
+                Cliente Solicitante
+              </label>
+              <select 
+                id="select-cliente" 
+                name="cliente" 
+                class="form-select custom-input" 
+                [(ngModel)]="pedido.cliente" 
+                required
+                #clienteField="ngModel">
+                <option [ngValue]="null" disabled selected>Seleccione el cliente por Razón Social / CUIT</option>
+                <option *ngFor="let clie of clientes" [ngValue]="clie">
+                  {{ clie.razonSocial }} ({{ clie.cuit }})
+                </option>
+              </select>
+              <div *ngIf="clienteField.invalid && clienteField.touched" class="text-danger mt-1 small">
+                El cliente es obligatorio para confeccionar el pedido.
+              </div>
+            </div>
 
-        <div class="col-md-6">
-          <label class="form-label">Producto</label>
-          <select id="select-producto" formControlName="producto" class="form-select">
-            <option [ngValue]="null">Seleccionar Producto...</option>
-            <option *ngFor="let p of productos" [ngValue]="p">{{p.nombre}}</option>
-          </select>
+            <div class="mb-4">
+              <label for="select-producto" class="form-label text-secondary-custom font-medium">
+                Producto a Fabricar
+              </label>
+              <select 
+                id="select-producto" 
+                name="producto" 
+                class="form-select custom-input" 
+                [(ngModel)]="pedido.producto" 
+                required
+                #prodField="ngModel">
+                <option [ngValue]="null" disabled selected>Seleccione el producto de la lista</option>
+                <option *ngFor="let prod of productos" [ngValue]="prod">
+                  {{ prod.nombre }}
+                </option>
+              </select>
+              <div *ngIf="prodField.invalid && prodField.touched" class="text-danger mt-1 small">
+                El producto es requerido.
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="input-cantidad" class="form-label text-secondary-custom font-medium">
+                Cantidad de Unidades
+              </label>
+              <input 
+                type="number" 
+                id="input-cantidad" 
+                name="cantidad" 
+                class="form-control custom-input" 
+                [(ngModel)]="pedido.cantidad" 
+                required 
+                min="1"
+                #cantField="ngModel" />
+              <div *ngIf="cantField.invalid && cantField.touched" class="text-danger mt-1 small">
+                La cantidad debe ser mayor o igual a 1.
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-4">
+                <label for="input-fecha-pedido" class="form-label text-secondary-custom font-medium">
+                  Fecha de Registro del Pedido
+                </label>
+                <input 
+                  type="date" 
+                  id="input-fecha-pedido" 
+                  name="fechaPedido" 
+                  class="form-control custom-input date-picker-custom" 
+                  [(ngModel)]="pedido.fechaPedido" 
+                  required
+                  #fpField="ngModel" />
+                <div *ngIf="fpField.invalid && fpField.touched" class="text-danger mt-1 small">
+                  La fecha de registro del pedido es requerida.
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-4">
+                <label for="input-fecha-entrega" class="form-label text-secondary-custom font-medium">
+                  Fecha Prometida de Entrega
+                </label>
+                <input 
+                  type="date" 
+                  id="input-fecha-entrega" 
+                  name="fechaEntrega" 
+                  class="form-control custom-input date-picker-custom" 
+                  [(ngModel)]="pedido.fechaEntrega" 
+                  required
+                  #feField="ngModel" />
+                <div *ngIf="feField.invalid && feField.touched" class="text-danger mt-1 small">
+                  La fecha de entrega estimada es requerida.
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 mt-5">
+              <button type="button" class="btn btn-outline-secondary px-4 py-2" (click)="cancelar()">
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                id="btn-guardar" 
+                class="btn btn-action px-5 py-2" 
+                [disabled]="pedidoForm.invalid">
+                Generar Pedido
+              </button>
+            </div>
+
+          </form>
         </div>
-
-        <div class="col-md-6">
-          <label class="form-label">Taller de Fabricación</label>
-          <select id="select-taller" formControlName="taller" class="form-select">
-            <option [ngValue]="null">Seleccionar Taller...</option>
-            <option *ngFor="let t of talleres" [ngValue]="t">{{t.nombre}}</option>
-          </select>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Cantidad</label>
-          <input id="input-cantidad" type="number" formControlName="cantidad" class="form-control">
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label">Fecha Programada</label>
-          <input id="input-fecha" type="date" formControlName="fechaEntrega" class="form-control">
-        </div>
-
-        <div class="col-12 mt-4">
-          <button id="btn-guardar" type="submit" class="btn btn-primary w-100" [disabled]="pedidoForm.invalid">
-            Confirmar y Planificar
-          </button>
-        </div>
-      </form>
-
-      <div *ngIf="mensaje" id="mensaje-exito" class="alert alert-info mt-4">
-        {{ mensaje }}
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    /* Inversión cromática nativa local para que los iconos de fecha de webkit no queden negros e invisibles */
+    .date-picker-custom::-webkit-calendar-picker-indicator {
+      filter: invert(1) sepia(0) saturate(0) hue-rotate(0deg) opacity(0.7);
+      cursor: pointer;
+    }
+    .date-picker-custom::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+  `]
 })
 export class PedidoNuevoComponent implements OnInit {
-  pedidoForm: FormGroup;
-  clientes: any[] = [];
   productos: any[] = [];
-  talleres: any[] = [];
-  mensaje: string = '';
+  clientes: any[] = [];
+  
+  pedido: any = { 
+    cliente: null, 
+    producto: null, 
+    cantidad: null, 
+    fechaPedido: '', 
+    fechaEntrega: '' 
+  };
 
   constructor(
-    private fb: FormBuilder,
-    private pedidoService: PedidoService,
-    private clienteService: ClienteService,
     private productoService: ProductoService,
-    private tallerService: TallerService
-  ) {
-    this.pedidoForm = this.fb.group({
-      cliente: [null, Validators.required],
-      producto: [null, Validators.required],
-      taller: [null],
-      cantidad: [1, [Validators.required, Validators.min(1)]],
-      fechaEntrega: ['', Validators.required]
+    private clienteService: ClienteService,
+    private pedidoService: PedidoService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.productoService.findAll().subscribe((data: any) => {
+      this.productos = data;
+    });
+
+    this.clienteService.findAll().subscribe((data: any) => {
+      this.clientes = data;
     });
   }
 
-  ngOnInit() {
-    this.clienteService.findAll().subscribe(res => this.clientes = res.data);
-    this.productoService.findAll().subscribe(res => this.productos = res.data);
-    this.tallerService.findAll().subscribe(res => this.talleres = res.data);
-  }
-
-  onGuardar() {
-    this.pedidoService.guardar(this.pedidoForm.value).subscribe({
-      next: (res: any) => {
-        this.mensaje = res.message;
-        this.pedidoForm.reset({cantidad: 1});
+  guardar(): void {
+    this.pedidoService.guardar(this.pedido).subscribe({
+      next: () => {
+        this.router.navigate(['/planificaciones']);
       },
-      error: () => this.mensaje = 'Error al registrar el pedido'
+      error: (err: any) => console.error(err)
     });
+  }
+
+  cancelar(): void {
+    this.router.navigate(['/']);
   }
 }

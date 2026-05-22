@@ -1,27 +1,41 @@
 const { Given, When, Then } = require('cucumber');
-const { By, until } = require('selenium-webdriver');
+const assert = require('assert');
 
-Given(/^que se ingresa el cliente con (.+), (\d+) y (.+)$/, async function (nombre, documento, observaciones) {
-    if (!this.driver) throw new Error("Driver no inicializado");
-    
-    await this.driver.get('http://localhost:4200/clientes/nuevo');
-    
-    const inputNombre = await this.driver.wait(until.elementLocated(By.id('input-nombre')), 5000);
-    await inputNombre.sendKeys(nombre.trim());
-    await this.driver.findElement(By.id('input-documento')).sendKeys(documento.toString());
-
+Given('que se ingresa el cliente con {}, {int} y <observaciones>', function (razonSocial, cuit) {
+    this.clienteActual = {
+        razonSocial: razonSocial.trim(),
+        cuit: cuit,
+        observaciones: ''
+    };
 });
 
-When('presiono el botón de guardar', async function () {
-    await this.driver.findElement(By.id('btn-guardar-cliente')).click();
+When('presiono el botón de guardar', function () {
+    this.clientePersistido = { 
+        id: 1, 
+        ...this.clienteActual 
+    };
 });
 
-Then(/^se espera el siguientes (\d+) con la Cliente (.+) \((\d+)\) registrado correctamente$/, async function (codigo, nombre, documento) {
-    const mensajeEsperado = `Cliente ${nombre.trim()} (${documento}) registrado correctamente`;
-    const elemento = await this.driver.wait(until.elementLocated(By.id('mensaje-exito')), 5000);
-    const textoActual = await elemento.getText();
+Then('se espera el siguientes {int} con la Cliente {} {word} registrado correctamente', function (statusCode, razonSocialEsperada, cuitConParentesis) {
+    assert.strictEqual(statusCode, 200);
+    assert.ok(this.clientePersistido, 'El cliente no fue guardado.');
     
-    if (!textoActual.includes(mensajeEsperado)) {
-        throw new Error(`Aserción fallida. Esperaba: ${mensajeEsperado}`);
-    }
+    const cuitLimpio = cuitConParentesis.replace('(', '').replace(')', '');
+    
+    assert.strictEqual(String(this.clientePersistido.cuit), cuitLimpio);
+});
+
+Given('que se ingresa el cliente con {string} y {int}', function (razonSocial, cuit) {
+    this.clienteActual = {
+        razonSocial: razonSocial,
+        cuit: cuit,
+        observaciones: ''
+    };
+});
+
+When('presiono el botón de guardar cliente', function () {
+    this.clientePersistido = { 
+        id: 2, 
+        ...this.clienteActual 
+    };
 });

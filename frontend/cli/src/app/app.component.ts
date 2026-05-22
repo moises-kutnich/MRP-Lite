@@ -14,7 +14,7 @@ import { CommonModule } from '@angular/common';
         <a routerLink="/tipo-equipo/nuevo" routerLinkActive="active-link">Tipo de Equipo</a>
         <a routerLink="/talleres/nuevo" routerLinkActive="active-link">Taller y Equipo</a>     
         <a routerLink="/productos/nuevo" routerLinkActive="active-link">Productos</a>
-        <a routerLink="/planificacion" routerLinkActive="active-link">Visualizar Planificación</a>
+        <a routerLink="/planificacion" routerLinkActive="active-link">Planificación</a>
         <a routerLink="/pedidos" routerLinkActive="active-link">Pedidos</a>
       </div>
     </nav>
@@ -27,7 +27,7 @@ import { CommonModule } from '@angular/common';
     :host {
       display: block;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background-color: #f4f7f6; 
+      background-color: #f0f2f5; 
       min-height: 100vh;
     }
 
@@ -35,11 +35,11 @@ import { CommonModule } from '@angular/common';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #1a252f; 
+      background-color: #2c3e50; 
       padding: 0.7rem 2.5rem;
       color: white;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      border-bottom: 3px solid #3498db;
+      border-bottom: 3px solid #546e7a;
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -50,6 +50,7 @@ import { CommonModule } from '@angular/common';
       font-weight: 800;
       letter-spacing: 2px;
       color: #ffffff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
 
     .nav-links {
@@ -72,10 +73,10 @@ import { CommonModule } from '@angular/common';
       transform: translateY(-1px);
     }
 
-    /* Estilo para cuando el link está activo */
     .active-link {
       color: white !important;
-      background-color: #3498db !important;
+      background-color: #546e7a !important;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
     .nav-links a:active {

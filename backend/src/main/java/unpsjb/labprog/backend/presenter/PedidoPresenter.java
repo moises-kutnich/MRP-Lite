@@ -52,11 +52,11 @@ public class PedidoPresenter {
         repository.save(pedido);
         
         if (pedido.getTaller() != null && pedido.getFechaEntrega() != null) {
-            LocalDateTime inicio = pedido.getFechaEntrega().atStartOfDay();
-            planificadorService.planificar(pedido, pedido.getTaller(), inicio);
+            LocalDateTime limiteEntrega = pedido.getFechaEntrega().atStartOfDay();
+            planificadorService.planificar(pedido, pedido.getTaller(), limiteEntrega);
         }
 
-        return Response.response(HttpStatus.OK, "Producto planificado con éxito", pedido);
+        return Response.response(HttpStatus.OK, "Pedido planificado con éxito", pedido);
     }
 
     @GetMapping("/planificacion/{idTaller}")
