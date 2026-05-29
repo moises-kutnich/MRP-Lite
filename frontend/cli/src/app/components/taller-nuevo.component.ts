@@ -1,120 +1,97 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { TallerService } from '../services/taller.service';
 import { TipoEquipoService } from '../services/tipo-equipo.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-taller-nuevo',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="container mt-4 p-4 border rounded shadow-sm bg-white">
-      <h2 class="mb-4">Gestión de Talleres </h2>
-      
-      <div class="card mb-4">
-        <div class="card-header bg-primary text-white">Ingresar Nuevo Taller</div>
-        <div class="card-body">
-          <form [formGroup]="tallerForm" (ngSubmit)="onGuardarTaller()" class="row g-3">
-            <div class="col-md-4">
-              <input formControlName="codigo" class="form-control" placeholder="Código (ej: ALFA)">
-            </div>
-            <div class="col-md-6">
-              <input formControlName="nombre" class="form-control" placeholder="Nombre del Taller">
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-primary w-100" [disabled]="tallerForm.invalid">Guardar</button>
-            </div>
-          </form>
+    <div class="container mt-4">
+      <div class="card shadow-lg card-premium text-light">
+        <div class="card-header header-premium py-3">
+          <h2 class="m-0 font-weight-bold text-white fs-3 tracking-wide text-uppercase">
+            <i class="bi bi-gear-wide-connected me-2 text-accent-premium"></i>Gestión de Talleres
+          </h2>
         </div>
-      </div>
+        
+        <div class="card-body p-4">
+          <form (ngSubmit)="guardar()" #tallerForm="ngForm">
+            
+            <div class="mb-4">
+              <label class="form-label text-white font-medium fs-5">Código de Identificación</label>
+              <input type="text" name="codigo" class="form-control input-premium" [(ngModel)]="taller.codigo" required />
+            </div>
 
-      <div class="card">
-        <div class="card-header bg-success text-white">Agregar Equipos a Taller Existente</div>
-        <div class="card-body">
-          <form [formGroup]="equipoForm" (ngSubmit)="onActualizarTaller()" class="row g-3">
-            <div class="col-md-3">
-              <input formControlName="codigoTaller" class="form-control" placeholder="Código Taller">
+            <div class="mb-4">
+              <label class="form-label text-white font-medium fs-5">Nombre Comercial</label>
+              <input type="text" name="nombre" class="form-control input-premium" [(ngModel)]="taller.nombre" required />
             </div>
-            <div class="col-md-3">
-              <input formControlName="codigoEquipo" class="form-control" placeholder="Código Equipo">
+
+            <h4 class="text-white mt-4 mb-3 border-bottom border-secondary pb-2 fs-5 font-semibold">Configurar Equipamiento</h4>
+            
+            <div class="row bg-black bg-opacity-25 p-3 rounded border border-secondary mb-4 align-items-center" *ngFor="let eq of taller.equipos; let i = index">
+              <div class="col-md-5">
+                <label class="form-label text-secondary small">Tipo de Máquina/Equipo</label>
+                <select [name]="'tipo-' + i" class="form-select input-premium" [(ngModel)]="eq.tipo" required>
+                  <option [ngValue]="null" disabled>Seleccione tipo...</option>
+                  <option *ngFor="let t of tipos" [ngValue]="t">{{t.nombre}}</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-secondary small">Capacidad Productiva</label>
+                <input type="number" [name]="'cap-' + i" class="form-control input-premium" [(ngModel)]="eq.capacidad" required min="1" />
+              </div>
+              <div class="col-md-3 d-flex align-items-end justify-content-end mt-3 mt-md-0">
+                <button type="button" class="btn btn-outline-danger w-100" (click)="removerEquipo(i)">
+                  <i class="bi bi-trash me-1"></i> Eliminar
+                </button>
+              </div>
             </div>
-            <div class="col-md-2">
-              <select formControlName="tipoEquipo" class="form-select">
-                <option value="">Tipo...</option>
-                <option *ngFor="let tipo of tipos" [value]="tipo.nombre">{{tipo.nombre}}</option>
-              </select>
-            </div>
-            <div class="col-md-2">
-              <input formControlName="capacidad" type="number" class="form-control" placeholder="Cap">
-            </div>
-            <div class="col-md-2">
-              <button type="submit" class="btn btn-success w-100" [disabled]="equipoForm.invalid">Actualizar</button>
+
+            <button type="button" class="btn btn-outline-primary mb-4" (click)="agregarEquipo()">
+              <i class="bi bi-plus-circle me-1"></i> Añadir Unidad Operativa
+            </button>
+
+            <div class="d-flex justify-content-end gap-3 border-top border-secondary pt-4 mt-4">
+              <button type="button" class="btn btn-outline-secondary px-4 text-light border-secondary" (click)="cancelar()">Cancelar</button>
+              <button type="submit" class="btn btn-premium-action px-5" [disabled]="tallerForm.invalid">Guardar Taller</button>
             </div>
           </form>
         </div>
-      </div>
-      
-      <div *ngIf="mensaje" class="alert alert-info mt-4" role="alert">
-        {{ mensaje }}
       </div>
     </div>
   `
 })
 export class TallerNuevoComponent implements OnInit {
-  tallerForm: FormGroup;
-  equipoForm: FormGroup;
-  mensaje: string = '';
+  taller: any = { codigo: '', nombre: '', equipos: [] };
   tipos: any[] = [];
 
-  constructor(
-    private fb: FormBuilder, 
-    private tallerService: TallerService,
-    private tipoEquipoService: TipoEquipoService
-  ) {
-    this.tallerForm = this.fb.group({
-      codigo: ['', Validators.required],
-      nombre: ['', Validators.required]
-    });
+  constructor(private tallerService: TallerService, private tipoService: TipoEquipoService, private router: Router) {}
 
-    this.equipoForm = this.fb.group({
-      codigoTaller: ['', Validators.required],
-      codigoEquipo: ['', Validators.required],
-      tipoEquipo: ['', Validators.required],
-      capacidad: [1, [Validators.required, Validators.min(1)]]
+  ngOnInit(): void {
+    this.tipoService.findAll().subscribe((data: any) => this.tipos = data);
+  }
+
+  agregarEquipo(): void {
+    this.taller.equipos.push({ tipo: null, capacidad: 1 });
+  }
+
+  removerEquipo(index: number): void {
+    this.taller.equipos.splice(index, 1);
+  }
+
+  guardar(): void {
+    this.tallerService.guardarTaller(this.taller).subscribe({
+      next: () => this.router.navigate(['/']),
+      error: (err: any) => console.error(err)
     });
   }
 
-  ngOnInit() {
-    this.tipoEquipoService.findAll().subscribe(res => {
-      this.tipos = res.data;
-    });
-  }
-
-  onGuardarTaller() {
-    this.tallerService.guardarTaller(this.tallerForm.value).subscribe({
-      next: (res) => {
-        this.mensaje = res.message;
-        this.tallerForm.reset();
-      },
-      error: (err) => this.mensaje = 'Error al guardar el taller'
-    });
-  }
-
-  onActualizarTaller() {
-    const { codigoTaller, codigoEquipo, tipoEquipo, capacidad } = this.equipoForm.value;
-    const payload = { 
-      codigo: codigoEquipo, 
-      tipoEquipo: tipoEquipo, 
-      capacidad: capacidad 
-    };
-    
-    this.tallerService.actualizarTaller(codigoTaller, payload).subscribe({
-      next: (res) => {
-        this.mensaje = res.message;
-        this.equipoForm.reset({capacidad: 1});
-      },
-      error: (err) => this.mensaje = 'Error al actualizar el taller'
-    });
+  cancelar(): void {
+    this.router.navigate(['/']);
   }
 }

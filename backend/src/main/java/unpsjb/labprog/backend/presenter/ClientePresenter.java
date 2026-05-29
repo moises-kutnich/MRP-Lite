@@ -2,7 +2,7 @@ package unpsjb.labprog.backend.presenter;
 
 import unpsjb.labprog.backend.model.Cliente;
 import unpsjb.labprog.backend.business.ClienteRepository;
-import unpsjb.labprog.backend.Response; //
+import unpsjb.labprog.backend.Response; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;

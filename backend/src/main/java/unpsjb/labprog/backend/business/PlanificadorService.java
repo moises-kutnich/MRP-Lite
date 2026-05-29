@@ -36,4 +36,14 @@ public class PlanificadorService {
         
         return criterioSeleccionTaller.seleccionar(todosLosTalleres, producto);
     }
+
+    public Equipo buscarEquipoEnTaller(Taller taller, TipoEquipo tipo) {
+        if (taller == null || taller.getEquipos() == null || tipo == null) {
+            return null;
+        }
+        return taller.getEquipos().stream()
+                .filter(e -> e.getTipo() != null && e.getTipo().getId().equals(tipo.getId()))
+                .findFirst()
+                .orElse(null);
+    }
 }

@@ -1,76 +1,93 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
 @import "font-awesome/css/font-awesome.css";
 
-/* Paleta de colores Dark Modernizada */
 body {
   background-color: #12141c !important;
   color: #e2e8f0;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Customización de Tarjetas y Headers */
-.bg-dark {
+.card-premium {
   background-color: #1a1d29 !important;
+  border: 1px solid #232838 !important;
+  border-radius: 12px !important;
+  position: relative;
+  overflow: hidden !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
 
-.header-custom {
-  background: linear-gradient(135deg, #2b1c4e 0%, #1a1235 100%);
+.card-premium::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7952b3 0%, #4f46e5 100%) !important;
+  z-index: 10;
+}
+
+.header-premium {
+  background: linear-gradient(135deg, #2b1c4e 0%, #1a1235 100%) !important;
   border-bottom: 2px solid #3d2b6b !important;
+  padding: 1.2rem 1.5rem !important;
 }
 
-/* Entradas de Datos Estilizadas */
-.custom-input {
+.input-premium {
   background-color: #222636 !important;
   border: 1px solid #32384e !important;
   color: #ffffff !important;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.6rem 0.9rem;
-}
-
-.custom-input:focus {
-  border-color: #7952b3 !important;
-  box-shadow: 0 0 0 0.25rem rgba(121, 82, 179, 0.25) !important;
-}
-
-/* Botones de Acción Especiales */
-.btn-action {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  color: white;
-  border: none;
-  font-weight: 600;
-  border-radius: 6px;
   transition: all 0.2s ease-in-out;
 }
 
-.btn-action:hover:not(:disabled) {
+.input-premium:focus {
+  background-color: #222636 !important;
+  border-color: #7952b3 !important;
+  box-shadow: 0 0 0 0.25rem rgba(121, 82, 179, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.input-premium::placeholder {
+  color: #64748b !important;
+  opacity: 1;
+}
+
+.btn-premium-action {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: white !important;
+  border: none !important;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-premium-action:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-  color: white;
 }
 
-/* Colores de texto auxiliares */
-.text-secondary-custom {
+.text-accent-premium {
   color: #94a3b8 !important;
-}
-
-.text-warning-custom {
-  color: #fbbf24 !important;
 }
 
 .text-light-custom {
   color: #cbd5e1 !important;
 }
 
-.bg-purple {
-  background-color: #6366f1 !important;
+.text-secondary-custom {
+  color: #94a3b8 !important;
 }
 
-.date-picker-custom::-webkit-calendar-picker-indicator {
-    filter: invert(1) sepia(0) saturate(0) hue-rotate(0deg) opacity(0.8);
-    cursor: pointer;
-    transition: opacity 0.2s;
+.date-picker-premium::-webkit-calendar-picker-indicator {
+  filter: invert(1) sepia(1) saturate(3) hue-rotate(230deg) opacity(0.8);
+  cursor: pointer;
 }
 
-.date-picker-custom::-webkit-calendar-picker-indicator:hover {
-    opacity: 1;
+.control-flechas-premium::-webkit-inner-spin-button,
+.control-flechas-premium::-webkit-outer-spin-button {
+  filter: invert(1) brightness(1.2);
+  cursor: pointer;
 }
