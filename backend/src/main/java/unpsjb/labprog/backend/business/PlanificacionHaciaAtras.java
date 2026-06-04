@@ -3,7 +3,6 @@ package unpsjb.labprog.backend.business;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import unpsjb.labprog.backend.model.*;
-import unpsjb.labprog.backend.business.PlanificacionRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,35 +19,50 @@ public class PlanificacionHaciaAtras implements EstrategiaPlanificacion {
 
     @Override
     public void generarPlanificacion(Pedido pedido, Taller taller, LocalDateTime fechaLimite) {
-        LocalDateTime tiempoActual = fechaLimite;
+        LocalDateTime tiempoTopeActual = fechaLimite;
 
         List<Tarea> tareasInvertidas = new ArrayList<>(pedido.getProducto().getTareas());
         Collections.reverse(tareasInvertidas);
 
-        for (Tarea tarea : tareasInvertidas) {
-            Equipo equipo = buscarEquipoEnTaller(taller, tarea.getTipoEquipo());
-            if (equipo != null) {
-                LocalDateTime finTarea = tiempoActual;
-                LocalDateTime inicioTarea = finTarea.minusMinutes(tarea.getTiempo());
+        int cantidadUnidades = (pedido.getCantidad() != null && pedido.getCantidad() > 0) ? pedido.getCantidad() : 1;
 
-                Planificacion p = new Planificacion();
-                p.setPedido(pedido);
-                p.setTaller(taller);
-                p.setEquipo(equipo);
-                p.setNombreTarea(tarea.getNombreTarea());
-                p.setInicio(inicioTarea);
-                p.setFin(finTarea);
-                p.setColor(asignadorColorService.determinarColor(pedido));
+        for (int i = 0; i < cantidadUnidades; i++) {
+            
+            List<Planificacion> planificacionesUnidad = new ArrayList<>();
 
-                planificacionRepository.save(p);
-                
+            for (Tarea tarea : tareasInvertidas) {
+                Equipo equipo = buscarEquipoEnTaller(taller, tarea.getTipoEquipo());
+                if (equipo != null) {
+                    LocalDateTime finTarea = tiempoTopeActual;
+                    LocalDateTime inicioTarea = finTarea.minusMinutes(tarea.getTiempo());
+
+                    Planificacion p = new Planificacion();
+                    p.setPedido(pedido);
+                    p.setTaller(taller);
+                    p.setEquipo(equipo);
+                    p.setNombreTarea(tarea.getNombreTarea());
+                    p.setInicio(inicioTarea);
+                    p.setFin(finTarea);
+                    p.setColor(asignadorColorService.determinarColor(pedido));
+
+                    planificacionesUnidad.add(p);
+                    
+                    tiempoTopeActual = inicioTarea;
+                }
             }
+
+            Collections.reverse(planificacionesUnidad);
+            for (Planificacion p : planificacionesUnidad) {
+                planificacionRepository.save(p);
+            }
+            
         }
     }
 
     private Equipo buscarEquipoEnTaller(Taller taller, TipoEquipo tipo) {
+        if (taller == null || taller.getEquipos() == null || tipo == null) return null;
         return taller.getEquipos().stream()
-                .filter(e -> e.getTipo().getId().equals(tipo.getId()))
+                .filter(e -> e.getTipo() != null && e.getTipo().getId().equals(tipo.getId()))
                 .findFirst().orElse(null);
     }
 }

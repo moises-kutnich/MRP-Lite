@@ -4,37 +4,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import unpsjb.labprog.backend.model.*;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.StreamSupport;
 
 @Service
 public class PlanificadorService {
 
-    private final TallerRepository tallerRepository;
-    private final CriterioSeleccionTaller criterioSeleccionTaller;
-    private final EstrategiaPlanificacion estrategiaPlanificacion;
+    @Autowired
+    private TallerRepository tallerRepository;
 
     @Autowired
-    public PlanificadorService(
-            TallerRepository tallerRepository,
-            @Qualifier("alfabetico") CriterioSeleccionTaller criterioSeleccionTaller,
-            @Qualifier("backward") EstrategiaPlanificacion estrategiaPlanificacion) {
-        this.tallerRepository = tallerRepository;
-        this.criterioSeleccionTaller = criterioSeleccionTaller;
-        this.estrategiaPlanificacion = estrategiaPlanificacion;
-    }
+    private PlanificacionRepository planificacionRepository;
 
-    public void planificar(Pedido pedido, Taller taller, LocalDateTime fechaReferencia) {
-        this.estrategiaPlanificacion.generarPlanificacion(pedido, taller, fechaReferencia);
-    }
+    @Autowired
+    @Qualifier("backward")
+    private EstrategiaPlanificacion estrategiaPlanificacion;
 
     public Taller encontrarTallerCapaz(Producto producto) {
-        List<Taller> todosLosTalleres = StreamSupport
-                .stream(tallerRepository.findAll().spliterator(), false)
-                .toList();
-        
-        return criterioSeleccionTaller.seleccionar(todosLosTalleres, producto);
+        Iterable<Taller> talleres = tallerRepository.findAll();
+
+        for (Taller taller : talleres) {
+            boolean esCapaz = producto.getTareas().stream().allMatch(tarea -> 
+                buscarEquipoEnTaller(taller, tarea.getTipoEquipo()) != null
+            );
+
+            if (esCapaz) {
+                long ocupadas = planificacionRepository.count();
+                
+                if (ocupadas == 0) {
+                    return taller;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void planificar(Pedido pedido, Taller taller, java.time.LocalDateTime limiteEntrega) {
+        if (estrategiaPlanificacion != null) {
+            estrategiaPlanificacion.generarPlanificacion(pedido, taller, limiteEntrega);
+        }
     }
 
     public Equipo buscarEquipoEnTaller(Taller taller, TipoEquipo tipo) {
@@ -43,7 +49,6 @@ public class PlanificadorService {
         }
         return taller.getEquipos().stream()
                 .filter(e -> e.getTipo() != null && e.getTipo().getId().equals(tipo.getId()))
-                .findFirst()
-                .orElse(null);
+                .findFirst().orElse(null);
     }
 }

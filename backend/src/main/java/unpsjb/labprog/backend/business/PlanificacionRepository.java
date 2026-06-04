@@ -1,12 +1,11 @@
 package unpsjb.labprog.backend.business;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import unpsjb.labprog.backend.model.*;
-import java.util.Optional;
+import org.springframework.data.repository.CrudRepository;
+import unpsjb.labprog.backend.model.Planificacion;
+import unpsjb.labprog.backend.model.Taller;
 import java.util.List;
 
-public interface PlanificacionRepository extends JpaRepository<Planificacion, Long> {
-    Optional<Planificacion> findTopByEquipoOrderByFinDesc(Equipo equipo);
-    
-    List<Planificacion> findByTallerId(Long tallerId);
+public interface PlanificacionRepository extends CrudRepository<Planificacion, Long> {
+    List<Planificacion> findByTallerId(Long idTaller);
+    long countByTaller(Taller taller);
 }
