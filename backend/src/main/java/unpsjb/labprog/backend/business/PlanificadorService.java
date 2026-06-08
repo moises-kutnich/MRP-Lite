@@ -19,23 +19,19 @@ public class PlanificadorService {
     private EstrategiaPlanificacion estrategiaPlanificacion;
 
     public Taller encontrarTallerCapaz(Producto producto) {
-        Iterable<Taller> talleres = tallerRepository.findAll();
+    Iterable<Taller> talleres = tallerRepository.findAll();
 
-        for (Taller taller : talleres) {
-            boolean esCapaz = producto.getTareas().stream().allMatch(tarea -> 
-                buscarEquipoEnTaller(taller, tarea.getTipoEquipo()) != null
-            );
+    for (Taller taller : talleres) {
+        boolean esCapaz = producto.getTareas().stream().allMatch(tarea -> 
+            buscarEquipoEnTaller(taller, tarea.getTipoEquipo()) != null
+        );
 
-            if (esCapaz) {
-                long ocupadas = planificacionRepository.count();
-                
-                if (ocupadas == 0) {
-                    return taller;
-                }
-            }
+        if (esCapaz) {
+            return taller;
         }
-        return null;
     }
+    return null;
+}
 
     public void planificar(Pedido pedido, Taller taller, java.time.LocalDateTime limiteEntrega) {
         if (estrategiaPlanificacion != null) {

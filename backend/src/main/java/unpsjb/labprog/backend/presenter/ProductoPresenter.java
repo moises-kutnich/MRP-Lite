@@ -8,8 +8,13 @@ import unpsjb.labprog.backend.Response;
 import unpsjb.labprog.backend.model.Producto;
 import unpsjb.labprog.backend.business.ProductoRepository;
 
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 @RestController
 @RequestMapping("/rest/productos")
+@CrossOrigin(origins = "http://localhost:4200")
 public class ProductoPresenter {
 
     @Autowired
@@ -17,14 +22,33 @@ public class ProductoPresenter {
 
     @PostMapping
     public ResponseEntity<Object> guardar(@RequestBody Producto producto) {
-        repository.save(producto);
-        
-        String mensaje = producto.getNombre() + " creado exitosamente";
-        
-        if (producto.getNombre().contains("Canasto") || producto.getNombre().contains("Pieza")) {
-            mensaje = "Producto " + producto.getNombre() + " creado exitosamente";
-        }
+        try {
+            repository.save(producto);
+            
+            String mensaje = producto.getNombre() + " creado exitosamente";
+            
+            if (producto.getNombre().contains("Canasto") || producto.getNombre().contains("Pieza")) {
+                mensaje = "Producto " + producto.getNombre() + " creado exitosamente";
+            }
 
-        return Response.response(HttpStatus.OK, mensaje, producto);
+            return Response.response(HttpStatus.OK, mensaje, producto);
+            
+        } catch (Exception e) {
+            return Response.response(
+                HttpStatus.INTERNAL_SERVER_ERROR, 
+                "Error en el servidor: " + e.getMessage(), 
+                null
+            );
+        }
+    }
+
+    @GetMapping
+    public Map<String, Object> listar() {
+        Map<String, Object> response = new HashMap<>();
+        List<Producto> lista = repository.findAll(); 
+        
+        response.put("data", lista);
+        response.put("status", 200);
+        return response;
     }
 }

@@ -6,6 +6,6 @@ import unpsjb.labprog.backend.model.Taller;
 import java.util.List;
 
 public interface PlanificacionRepository extends CrudRepository<Planificacion, Long> {
-    List<Planificacion> findByTallerId(Long idTaller);
+    List<Planificacion> findByTallerCodigo(String codigoTaller);
     long countByTaller(Taller taller);
 }

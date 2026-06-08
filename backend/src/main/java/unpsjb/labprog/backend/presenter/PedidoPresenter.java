@@ -86,12 +86,12 @@ public class PedidoPresenter {
         }
     }
 
-    @GetMapping("/planificacion/{idTaller}")
-    public ResponseEntity<Object> obtenerPlanificacion(@PathVariable Long idTaller) {
+    @GetMapping("/planificacion/{codigoTaller}")
+    public ResponseEntity<Object> obtenerPlanificacion(@PathVariable String codigoTaller) {
         return Response.response(
             HttpStatus.OK, 
             "Datos de planificación recuperados", 
-            planificacionRepository.findByTallerId(idTaller)
+            planificacionRepository.findByTallerCodigo(codigoTaller)
         );
     }
 }

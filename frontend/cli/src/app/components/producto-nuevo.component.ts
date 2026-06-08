@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ProductoService } from '../services/producto.service';
 import { TipoEquipoService } from '../services/tipo-equipo.service';
 import { Router } from '@angular/router';
@@ -11,6 +11,12 @@ import { Router } from '@angular/router';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="container mt-4">
+      
+      <div *ngIf="mensajeExito" class="alert alert-success alert-dismissible fade show shadow mb-4" role="alert" style="border-radius: 8px;">
+        <i class="bi bi-check-circle-fill me-2"></i> {{ mensajeExito }}
+        <button type="button" class="btn-close" (click)="mensajeExito = null" aria-label="Close"></button>
+      </div>
+
       <div class="card shadow-lg card-premium text-light">
         <div class="card-header header-premium py-3">
           <h3 class="m-0 font-weight-bold text-white text-uppercase tracking-wide fs-4">
@@ -19,7 +25,7 @@ import { Router } from '@angular/router';
         </div>
         
         <div class="card-body p-4">
-          <form (ngSubmit)="guardar()" #productoForm="ngForm">
+          <form (ngSubmit)="guardar(productoForm)" #productoForm="ngForm">
             
             <div class="mb-4">
               <label for="prod-name" class="form-label text-white fs-5 font-semibold">Nombre del Producto</label>
@@ -55,8 +61,9 @@ import { Router } from '@angular/router';
                 <label class="form-label text-secondary small">Duración (Minutos)</label>
                 <input type="number" [name]="'ttime-' + i" class="form-control input-premium" [(ngModel)]="t.tiempo" required min="1" />
               </div>
-              <div class="col-md-1 d-flex justify-content-end align-items-end mt-4">
-                <button type="button" class="btn btn-outline-danger btn-sm" (click)="removerTarea(i)">
+              
+              <div class="col-md-1 d-flex justify-content-end align-items-end mt-0 mb-2">
+                <button type="button" class="btn btn-link text-danger p-0 fs-4" (click)="removerTarea(i)" title="Eliminar Tarea">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
@@ -64,7 +71,9 @@ import { Router } from '@angular/router';
 
             <div class="d-flex justify-content-end gap-3 mt-5 border-top border-secondary pt-4">
               <button type="button" class="btn btn-outline-secondary px-4 text-light border-secondary" (click)="cancelar()">Cancelar</button>
-              <button type="submit" class="btn btn-premium-action px-5 py-2" [disabled]="productoForm.invalid">Guardar Producto</button>
+              <button type="submit" class="btn btn-premium-action px-5 py-2" [disabled]="productoForm.invalid || guardando">
+                {{ guardando ? 'Guardando...' : 'Guardar Producto' }}
+              </button>
             </div>
 
           </form>
@@ -76,11 +85,13 @@ import { Router } from '@angular/router';
 export class ProductoNuevoComponent implements OnInit {
   producto: any = { nombre: '', tareas: [] };
   tipos: any[] = [];
+  mensajeExito: string | null = null;
+  guardando: boolean = false;
 
   constructor(private productoService: ProductoService, private tipoService: TipoEquipoService, private router: Router) {}
 
   ngOnInit(): void {
-    this.tipoService.findAll().subscribe((data: any) => this.tipos = data);
+    this.tipoService.findAll().subscribe((res: any) => this.tipos = res.data || res);
   }
 
   agregarTarea(): void {
@@ -91,10 +102,25 @@ export class ProductoNuevoComponent implements OnInit {
     this.producto.tareas.splice(index, 1);
   }
 
-  guardar(): void {
+  guardar(form: NgForm): void {
+    this.guardando = true;
     this.productoService.guardar(this.producto).subscribe({
-      next: () => this.router.navigate(['/']),
-      error: (err: any) => console.error(err)
+      next: (res: any) => {
+        this.mensajeExito = res.message || 'Producto registrado correctamente';
+        
+        this.producto = { nombre: '', tareas: [] };
+        form.resetForm();
+        
+        this.guardando = false;
+
+        setTimeout(() => {
+          this.mensajeExito = null;
+        }, 4000);
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.guardando = false;
+      }
     });
   }
 

@@ -7,11 +7,11 @@ import { DataPackage } from '../data-package';
   providedIn: 'root'
 })
 export class PlanificacionService {
-  private url = '/rest/pedidos/planificacion';
+  private url = 'http://localhost:8080/rest/pedidos/planificacion';
 
   constructor(private http: HttpClient) { }
 
-  obtenerPorTaller(idTaller: number): Observable<DataPackage> {
+  obtenerPorTaller(idTaller: string): Observable<DataPackage> {
     return this.http.get<DataPackage>(`${this.url}/${idTaller}`);
   }
 }

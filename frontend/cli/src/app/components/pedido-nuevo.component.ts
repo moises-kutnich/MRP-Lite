@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ProductoService } from '../services/producto.service';
 import { ClienteService } from '../services/cliente.service';
 import { PedidoService } from '../services/pedido.service';
@@ -12,6 +12,12 @@ import { Router } from '@angular/router';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="container mt-4 main-card">
+      
+      <div *ngIf="mensajeExito" class="alert alert-success alert-dismissible fade show shadow mb-4" role="alert" style="border-radius: 8px;">
+        <i class="bi bi-check-circle-fill me-2"></i> {{ mensajeExito }}
+        <button type="button" class="btn-close" (click)="mensajeExito = null" aria-label="Close"></button>
+      </div>
+
       <div class="card shadow-lg card-premium text-light" style="border-radius: 12px !important;">
         <div class="card-header header-premium">
           <h3 class="m-0 font-weight-bold text-white text-uppercase tracking-wide fs-4">
@@ -20,7 +26,7 @@ import { Router } from '@angular/router';
         </div>
         
         <div class="card-body p-4">
-          <form (ngSubmit)="guardar()" #pedidoForm="ngForm">
+          <form (ngSubmit)="guardar(pedidoForm)" #pedidoForm="ngForm">
             
             <div class="mb-4">
               <label for="select-cliente" class="form-label text-white font-medium fs-5">
@@ -110,8 +116,8 @@ import { Router } from '@angular/router';
                 type="submit" 
                 id="btn-guardar" 
                 class="btn btn-premium-action px-5 py-2" 
-                [disabled]="pedidoForm.invalid">
-                Generar Pedido
+                [disabled]="pedidoForm.invalid || guardando">
+                {{ guardando ? 'Guardando...' : 'Generar Pedido' }}
               </button>
             </div>
 
@@ -142,6 +148,9 @@ export class PedidoNuevoComponent implements OnInit {
   fechaPedidoInput: string = '';
   fechaEntregaInput: string = '';
 
+  mensajeExito: string | null = null;
+  guardando: boolean = false;
+
   constructor(
     private productoService: ProductoService, 
     private clienteService: ClienteService, 
@@ -150,11 +159,13 @@ export class PedidoNuevoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.productoService.findAll().subscribe((data: any) => this.productos = data);
-    this.clienteService.findAll().subscribe((data: any) => this.clientes = data);
+    this.productoService.findAll().subscribe((res: any) => this.productos = res.data || res);
+    this.clienteService.findAll().subscribe((res: any) => this.clientes = res.data || res);
   }
 
-  guardar(): void {
+  guardar(form: NgForm): void {
+    this.guardando = true;
+
     const payload = {
       cliente: this.clienteSeleccionado ? { id: this.clienteSeleccionado.id } : null,
       producto: this.productoSeleccionado ? { id: this.productoSeleccionado.id } : null,
@@ -164,10 +175,26 @@ export class PedidoNuevoComponent implements OnInit {
     };
 
     this.pedidoService.guardar(payload).subscribe({
-      next: () => {
-        this.router.navigate(['/planificaciones']);
+      next: (res: any) => {
+        this.mensajeExito = res.message || 'Pedido de fabricación generado correctamente';
+        
+        this.clienteSeleccionado = null;
+        this.productoSeleccionado = null;
+        this.cantidadInput = null;
+        this.fechaPedidoInput = '';
+        this.fechaEntregaInput = '';
+        
+        form.resetForm();
+        this.guardando = false;
+
+        setTimeout(() => {
+          this.mensajeExito = null;
+        }, 4000);
       },
-      error: (err: any) => console.error('Error al enviar los datos:', err)
+      error: (err: any) => {
+        console.error('Error al enviar los datos:', err);
+        this.guardando = false;
+      }
     });
   }
 

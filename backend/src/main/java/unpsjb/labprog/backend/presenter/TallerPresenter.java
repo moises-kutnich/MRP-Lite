@@ -11,6 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/rest")
+@CrossOrigin(origins = "http://localhost:4200")
 public class TallerPresenter {
 
     @Autowired
@@ -29,10 +30,15 @@ public class TallerPresenter {
 
     @PostMapping("/talleres")
     public ResponseEntity<Object> guardarTaller(@RequestBody Taller taller) {
-        repository.save(taller);
-        return Response.response(HttpStatus.OK, 
-            "Taller " + taller.getCodigo() + " ingresado correctamente", 
-            taller);
+        try {
+            repository.save(taller);
+            
+            return Response.response(HttpStatus.OK, 
+                "Taller " + taller.getCodigo() + " ingresado correctamente", 
+                taller);
+        } catch (Exception e) {
+            return Response.response(HttpStatus.INTERNAL_SERVER_ERROR, "Error en el servidor: " + e.getMessage(), null);
+        }
     }
 
     @PutMapping("/talleres/{codigoTaller}/equipos")

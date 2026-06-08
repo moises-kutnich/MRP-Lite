@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PlanificacionService } from '../services/planificacion.service';
+
+declare var google: any;
 
 @Component({
   selector: 'app-planificacion-visor',
@@ -15,61 +17,107 @@ import { PlanificacionService } from '../services/planificacion.service';
           </h3>
         </div>
 
-        <div class="card-body p-0">
-          <div class="table-responsive" *ngIf="planificaciones && planificaciones.length > 0">
-            <table id="tabla-planificaciones" class="table table-dark table-striped table-hover m-0 align-middle">
-              <thead>
-                <tr class="text-secondary-custom text-uppercase fs-7 tracking-wider border-bottom border-secondary">
-                  <th class="ps-4 py-3">Pedido ID</th>
-                  <th class="py-3">Taller</th>
-                  <th class="py-3">Equipo Asignado</th>
-                  <th class="py-3">Tarea Ejecutada</th>
-                  <th class="py-3">Inicio</th>
-                  <th class="py-3">Fin</th>
-                  <th class="pe-4 py-3 text-center">Asignación</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let plan of planificaciones" class="border-bottom border-secondary">
-                  <td class="ps-4 font-medium text-info py-3">#{{ plan.pedido?.id || 'N/A' }}</td>
-                  <td class="py-3 text-white font-semibold">{{ plan.taller?.codigo }}</td>
-                  <td class="py-3 text-light-50"><i class="bi bi-tools me-1 text-secondary"></i> {{ plan.equipo?.nombre }}</td>
-                  <td class="py-3 font-medium text-white">{{ plan.nombreTarea }}</td>
-                  <td class="py-3 text-white font-mono fs-7">{{ plan.inicio | date: 'dd/MM/yyyy HH:mm' }}</td>
-                  <td class="py-3 text-white font-mono fs-7">{{ plan.fin | date: 'dd/MM/yyyy HH:mm' }}</td>
-                  <td class="pe-4 py-3 text-center">
-                    <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-50 px-2 py-1 fs-8 text-uppercase">
-                      Límite Entrega
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <div class="card-body p-4 bg-dark bg-opacity-25">
+          
+          <div id="taller-title-container" class="mb-3 d-none">
+            <h2 class="text-white font-weight-bold tracking-wide border-bottom border-secondary pb-2" style="font-size: 1.75rem;">
+              <i class="bi bi-building me-2 text-info"></i>Taller: {{ nombreTaller }}
+            </h2>
           </div>
 
-          <div *ngIf="!planificaciones || planificaciones.length === 0" class="text-center py-5 text-white bg-black bg-opacity-25">
+          <div id="timeline-chart" class="rounded p-3 bg-white text-dark shadow-sm" style="width: 100%; min-height: 400px;">
+          </div>
+
+          <div id="no-data-msg" class="text-center py-5 text-white d-none">
             <i class="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i> 
             <span class="fs-5 text-light-custom tracking-wide d-block">No hay planificaciones generadas en el sistema.</span>
           </div>
+
         </div>
       </div>
     </div>
-  `,
-  styles: [`
-    .font-mono { font-family: 'Courier New', Courier, monospace; }
-    .fs-7 { font-size: 0.85rem; }
-    .fs-8 { font-size: 0.75rem; }
-  `]
+  `
 })
-export class PlanificacionVisorComponent implements OnInit {
+export class PlanificacionVisorComponent implements OnInit, AfterViewInit {
   planificaciones: any[] = [];
+  nombreTaller: string = 'Cargando...';
 
   constructor(private planificacionService: PlanificacionService) {}
 
   ngOnInit(): void {
-    const idTallerDefault = 1;
-    this.planificacionService.obtenerPorTaller(idTallerDefault).subscribe((data: any) => {
-      this.planificaciones = data.data || data; 
+  }
+
+  ngAfterViewInit(): void {
+    if (typeof google === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://www.gstatic.com/charts/loader.js';
+      script.type = 'text/javascript';
+      script.async = true;
+      script.onload = () => {
+        google.charts.load('current', { packages: ['timeline'] });
+        google.charts.setOnLoadCallback(() => {
+          this.pedirDatosYDibujar();
+        });
+      };
+      document.head.appendChild(script);
+    } else {
+      this.pedirDatosYDibujar();
+    }
+  }
+
+  pedirDatosYDibujar(): void {
+    const codigoTallerReal = 'T-01';
+    
+    this.planificacionService.obtenerPorTaller(codigoTallerReal).subscribe((res: any) => {
+      this.planificaciones = res.data || res;
+      
+      const container = document.getElementById('timeline-chart');
+      const noDataMsg = document.getElementById('no-data-msg');
+      const titleContainer = document.getElementById('taller-title-container');
+
+      if (!this.planificaciones || this.planificaciones.length === 0) {
+        if (container) container.style.display = 'none';
+        if (noDataMsg) noDataMsg.classList.remove('d-none');
+        return;
+      }
+
+      if (this.planificaciones[0]?.taller) {
+       const t = this.planificaciones[0].taller;
+        this.nombreTaller = t.nombre ? t.nombre.toUpperCase() : t.codigo;
+      } else {
+        this.nombreTaller = codigoTallerReal;
+      }
+
+      if (titleContainer) titleContainer.classList.remove('d-none');
+
+      const chart = new google.visualization.Timeline(container);
+      const dataTable = new google.visualization.DataTable();
+
+      dataTable.addColumn({ type: 'string', id: 'Equipo' });
+      dataTable.addColumn({ type: 'string', id: 'Tarea' });
+      dataTable.addColumn({ type: 'date', id: 'Inicio' });
+      dataTable.addColumn({ type: 'date', id: 'Fin' });
+
+      const rows = this.planificaciones.map((plan: any) => {
+        const nombreEquipo = plan.equipo?.codigo || 'Equipo';
+        const nombreTarea = plan.nombreTarea || 'Operación';
+        const fechaInicio = new Date(plan.inicio);
+        const fechaFin = new Date(plan.fin);
+        
+        return [nombreEquipo, nombreTarea, fechaInicio, fechaFin];
+      });
+
+      dataTable.addRows(rows);
+
+      const opciones = {
+        timeline: { 
+          showRowLabels: true,
+          groupByRowLabel: true 
+        },
+        backgroundColor: '#ffffff'
+      };
+
+      chart.draw(dataTable, opciones);
     });
   }
 }

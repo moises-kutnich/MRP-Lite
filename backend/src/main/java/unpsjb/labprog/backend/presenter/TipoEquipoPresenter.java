@@ -7,21 +7,34 @@ import unpsjb.labprog.backend.model.TipoEquipo;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
-@RequestMapping("/tipos-equipo")
+@RequestMapping("/rest/tipos-equipos")
 @CrossOrigin(origins = "http://localhost:4200")
 public class TipoEquipoPresenter {
 
     @Autowired
     private TipoEquipoRepository repository;
 
+    @GetMapping
+    public Map<String, Object> listar() {
+        Map<String, Object> response = new HashMap<>();
+        List<TipoEquipo> lista = repository.findAll(); 
+        
+        response.put("data", lista);
+        response.put("status", 200);
+        return response;
+    }
+
     @PostMapping
-    public Map<String, String> guardar(@RequestBody TipoEquipo tipo) {
+    public Map<String, Object> guardar(@RequestBody TipoEquipo tipo) {
         repository.save(tipo);
         
-        Map<String, String> response = new HashMap<>();
-        response.put("respuesta", "Tipo de equipo " + tipo.getNombre() + " registrado correctamente");
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Tipo de equipo " + tipo.getNombre() + " registrado correctamente");
+        response.put("status", 200);
+        response.put("data", tipo);
         return response;
     }
 }
