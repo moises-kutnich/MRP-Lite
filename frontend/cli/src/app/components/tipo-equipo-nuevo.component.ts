@@ -82,7 +82,7 @@ export class TipoEquipoNuevoComponent {
     this.guardando = true;
     this.tipoEquipoService.save(this.tipoEquipo).subscribe({
       next: (res: any) => {
-        this.mensajeExito = res.respuesta || 'Tipo de equipo registrado correctamente';
+        this.mensajeExito = res.message || 'Tipo de equipo registrado correctamente';
         
         this.tipoEquipo = { codigo: '', nombre: '' };
         form.resetForm();

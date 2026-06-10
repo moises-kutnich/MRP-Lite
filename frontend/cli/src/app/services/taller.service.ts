@@ -7,7 +7,7 @@ import { DataPackage } from '../data-package';
   providedIn: 'root'
 })
 export class TallerService {
-  private url = 'http://localhost:8080/rest/talleres';
+  private url = 'http://localhost:8080/talleres';
   
   constructor(private http: HttpClient) { }
 

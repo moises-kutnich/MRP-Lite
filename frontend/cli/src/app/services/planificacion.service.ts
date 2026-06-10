@@ -7,7 +7,7 @@ import { DataPackage } from '../data-package';
   providedIn: 'root'
 })
 export class PlanificacionService {
-  private url = 'http://localhost:8080/rest/pedidos/planificacion';
+  private url = 'http://localhost:8080/pedidos/planificacion';
 
   constructor(private http: HttpClient) { }
 

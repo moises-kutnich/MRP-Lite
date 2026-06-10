@@ -1,10 +1,14 @@
 package unpsjb.labprog.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Tarea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

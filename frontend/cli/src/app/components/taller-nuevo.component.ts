@@ -108,8 +108,18 @@ export class TallerNuevoComponent implements OnInit {
   constructor(private tallerService: TallerService, private tipoService: TipoEquipoService, private router: Router) {}
 
   ngOnInit(): void {
-    this.tipoService.findAll().subscribe((res: any) => {
-      this.tipos = res.data || res;
+    this.tipoService.findAll().subscribe({
+      next: (res: any) => {
+        if (res && res.data) {
+          this.tipos = res.data;
+        } else {
+          this.tipos = res;
+        }
+        console.log('Tipos de equipo cargados para el taller:', this.tipos);
+      },
+      error: (err) => {
+        console.error('Error al cargar tipos de equipo:', err);
+      }
     });
   }
 

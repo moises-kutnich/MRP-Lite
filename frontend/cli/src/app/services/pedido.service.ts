@@ -7,7 +7,7 @@ import { DataPackage } from '../data-package';
   providedIn: 'root'
 })
 export class PedidoService {
-  private url = 'http://localhost:8080/rest/pedidos';
+  private url = 'http://localhost:8080/pedidos';
 
   constructor(private http: HttpClient) { }
 

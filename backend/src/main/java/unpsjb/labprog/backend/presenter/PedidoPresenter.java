@@ -8,10 +8,14 @@ import unpsjb.labprog.backend.Response;
 import unpsjb.labprog.backend.model.*;
 import unpsjb.labprog.backend.business.*;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 @RestController
-@RequestMapping("/rest/pedidos")
-@CrossOrigin(origins = "*")
+@RequestMapping("/pedidos")
+@CrossOrigin(origins = "http://localhost:4200")
 public class PedidoPresenter {
 
     @Autowired
@@ -28,6 +32,18 @@ public class PedidoPresenter {
 
     @Autowired
     private ProductoRepository productoRepository;
+
+    @GetMapping
+    public Map<String, Object> listar() {
+        Map<String, Object> response = new HashMap<>();
+        
+        List<Pedido> lista = new ArrayList<>();
+        repository.findAll().forEach(lista::add);
+        
+        response.put("data", lista);
+        response.put("status", 200);
+        return response;
+    }
 
     @PostMapping
     public ResponseEntity<Object> guardar(@RequestBody Pedido pedido) {

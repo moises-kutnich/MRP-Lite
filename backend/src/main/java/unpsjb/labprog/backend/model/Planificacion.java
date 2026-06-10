@@ -1,12 +1,16 @@
 package unpsjb.labprog.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Planificacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

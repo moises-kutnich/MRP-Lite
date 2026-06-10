@@ -159,8 +159,26 @@ export class PedidoNuevoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.productoService.findAll().subscribe((res: any) => this.productos = res.data || res);
-    this.clienteService.findAll().subscribe((res: any) => this.clientes = res.data || res);
+    this.productoService.findAll().subscribe({
+      next: (res: any) => {
+        this.productos = res.data || res;
+      },
+      error: (err) => console.error('Error al cargar productos:', err)
+    });
+
+    this.clienteService.findAll().subscribe({
+      next: (res: any) => {
+        if (res && res.data) {
+          this.clientes = res.data;
+        } else {
+          this.clientes = res;
+        }
+        console.log('Clientes cargados en el frontend:', this.clientes);
+      },
+      error: (err) => {
+        console.error('Error al cargar clientes:', err);
+      }
+    });
   }
 
   guardar(form: NgForm): void {

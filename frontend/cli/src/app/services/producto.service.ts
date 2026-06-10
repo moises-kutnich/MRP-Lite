@@ -7,7 +7,7 @@ import { DataPackage } from '../data-package';
   providedIn: 'root'
 })
 export class ProductoService {
-  private url = 'http://localhost:8080/rest/productos';
+  private url = 'http://localhost:8080/productos';
 
   constructor(private http: HttpClient) { }
 

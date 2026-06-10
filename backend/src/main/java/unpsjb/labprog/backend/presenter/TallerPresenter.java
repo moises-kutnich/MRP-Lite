@@ -8,9 +8,12 @@ import unpsjb.labprog.backend.Response;
 import unpsjb.labprog.backend.model.*;
 import unpsjb.labprog.backend.business.*;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/talleres") 
 @CrossOrigin(origins = "http://localhost:4200")
 public class TallerPresenter {
 
@@ -28,11 +31,10 @@ public class TallerPresenter {
             tipo);
     }
 
-    @PostMapping("/talleres")
+    @PostMapping
     public ResponseEntity<Object> guardarTaller(@RequestBody Taller taller) {
         try {
             repository.save(taller);
-            
             return Response.response(HttpStatus.OK, 
                 "Taller " + taller.getCodigo() + " ingresado correctamente", 
                 taller);
@@ -41,7 +43,18 @@ public class TallerPresenter {
         }
     }
 
-    @PutMapping("/talleres/{codigoTaller}/equipos")
+    @GetMapping
+    public Map<String, Object> listar() {
+        Map<String, Object> response = new HashMap<>();
+        List<Taller> lista = new ArrayList<>();
+        repository.findAll().forEach(lista::add);
+        
+        response.put("data", lista);
+        response.put("status", 200);
+        return response;
+    }
+
+    @PutMapping("/{codigoTaller}/equipos")
     public ResponseEntity<Object> actualizarTaller(@PathVariable String codigoTaller, @RequestBody Map<String, Object> payload) {
         Taller taller = repository.findById(codigoTaller).orElse(null);
         
@@ -50,7 +63,6 @@ public class TallerPresenter {
         }
 
         String nombreTipo = (String) payload.get("tipoEquipo");
-        
         TipoEquipo tipo = tipoRepo.findByNombre(nombreTipo).orElse(null);
 
         if (tipo == null) {

@@ -5,7 +5,7 @@ import { DataPackage } from '../data-package';
 
 @Injectable({ providedIn: 'root' })
 export class TipoEquipoService {
-  private url = 'http://localhost:8080/rest/tipos-equipos'; 
+  private url = 'http://localhost:8080/tipos-equipos'; 
 
   constructor(private http: HttpClient) {}
 
